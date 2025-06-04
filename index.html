@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古賀駅 券売機シミュレーター</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+        
+        .train-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: trainMove 3s ease-in-out infinite;
+        }
+        
+        @keyframes trainMove {
+            0%, 100% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+        }
+        
+        .machine {
+            background: #2c3e50;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            max-width: 900px;
+            width: 100%;
+            border: 5px solid #34495e;
+        }
+        
+        .screen {
+            background: #ecf0f1;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 3px solid #bdc3c7;
+            min-height: 400px;
+        }
+        
+        .screen h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+        
+        .payment-choice {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .payment-option {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .payment-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        
+        .payment-option.ic-card {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .station-btn {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .station-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        .wallet {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .coin, .bill {
+            background: #f39c12;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .bill {
+            background: #27ae60;
+        }
+        
+        .coin:hover, .bill:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .coin:active, .bill:active {
+            transform: scale(0.95);
+        }
+        
+        .money-display {
+            background: #34495e;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3em;
+        }
+        
+        .back-btn, .action-btn {
+            background: #95a5a6;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 1em;
+        }
+        
+        .action-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            font-size: 1.2em;
+            padding: 15px 30px;
+        }
+        
+        .back-btn:hover, .action-btn:hover {
+            opacity: 0.8;
+        }
+        
+        .ic-card-display {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .charge-amount {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .charge-btn {
+            background: #e67e22;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .charge-btn:hover {
+            background: #d35400;
+        }
+        
+        .ticket-output {
+            background: linear-gradient(45deg, #16a085, #1abc9c);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            animation: ticketPrint 1s ease-out;
+        }
+        
+        @keyframes ticketPrint {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        .change-display {
+            background: #f1c40f;
+            color: #2c3e50;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .celebration {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            animation: celebrate 0.5s ease-out;
+        }
+        
+        @keyframes celebrate {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .machine {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .payment-choice, .stations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wallet {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="train-icon">🚃</div>
+        <h1>古賀駅 券売機</h1>
+        <p>JR鹿児島本線</p>
+    </div>
+
+    <div class="machine">
+        <div class="screen">
+            <!-- 支払い方法選択画面 -->
+            <div id="payment-screen" class="screen-content">
+                <h2>🎫 お支払い方法を選んでください</h2>
+                <div class="payment-choice">
+                    <button class="payment-option" onclick="selectPayment('cash')">
+                        💰 現金で支払う
+                        <br><small>お札とコインを使います</small>
+                    </button>
+                    <button class="payment-option ic-card" onclick="selectPayment('ic')">
+                        💳 はやかけんで支払う
+                        <br><small>ICカードをタッチします</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 駅選択画面 -->
+            <div id="station-screen" class="screen-content hidden">
+                <button class="back-btn" onclick="goBack('payment')">← 戻る</button>
+                <h2>🚉 行き先を選んでください</h2>
+                <div class="stations-grid" id="stations-container">
+                    <!-- 駅ボタンがここに生成されます -->
+                </div>
+            </div>
+
+            <!-- 現金支払い画面 -->
+            <div id="cash-screen" class="screen-content hidden">
+                <button class="back-btn" onclick="goBack('station')">← 戻る</button>
+                <h2 id="cash-title">💰 お金を入れてください</h2>
+                <div class="money-display">
+                    <div>必要な金額: <span id="required-amount">0</span>円</div>
+                    <div>入れた金額: <span id="inserted-amount">0</span>円</div>
+                    <div>残り: <span id="remaining-amount">0</span>円</div>
+                </div>
+                
+                <h3>お財布からお金を選んでください</h3>
+                <div class="wallet">
+                    <button class="coin" onclick="insertMoney(10)">10円</button>
+                    <button class="coin" onclick="insertMoney(50)">50円</button>
+                    <button class="coin" onclick="insertMoney(100)">100円</button>
+                    <button class="coin" onclick="insertMoney(500)">500円</button>
+                    <button class="bill" onclick="insertMoney(1000)">1000円札</button>
+                </div>
+                
+                <button class="action-btn hidden" id="buy-ticket-btn" onclick="buyTicket()">🎫 乗車券を購入する</button>
+            </div>
+
+            <!-- ICカード画面 -->
+            <div id="ic-screen" class="screen-content hidden">
+                <button class="back-btn" onclick="goBack('station')">← 戻る</button>
+                <h2>💳 はやかけん</h2>
+                <div class="ic-card-display">
+                    <h3>🎴 はやかけん</h3>
+                    <div>残高: <span id="ic-balance">150</span>円</div>
+                </div>
+                
+                <div id="ic-insufficient" class="hidden">
+                    <p style="color: #e74c3c; font-weight: bold; text-align: center;">残高が足りません！チャージしてください</p>
+                    <h3>チャージ金額を選んでください</h3>
+                    <div class="charge-amount">
+                        <button class="charge-btn" onclick="chargeIC(500)">500円</button>
+                        <button class="charge-btn" onclick="chargeIC(1000)">1000円</button>
+                        <button class="charge-btn" onclick="chargeIC(2000)">2000円</button>
+                    </div>
+                    
+                    <h3>お金を入れてください（チャージ用）</h3>
+                    <div class="money-display">
+                        <div>必要な金額: <span id="charge-required">0</span>円</div>
+                        <div>入れた金額: <span id="charge-inserted">0</span>円</div>
+                    </div>
+                    
+                    <div class="wallet">
+                        <button class="coin" onclick="insertChareMoney(10)">10円</button>
+                        <button class="coin" onclick="insertChareMoney(50)">50円</button>
+                        <button class="coin" onclick="insertChareMoney(100)">100円</button>
+                        <button class="coin" onclick="insertChareMoney(500)">500円</button>
+                        <button class="bill" onclick="insertChareMoney(1000)">1000円札</button>
+                    </div>
+                    
+                    <button class="action-btn hidden" id="charge-btn" onclick="executeCharge()">💳 チャージする</button>
+                </div>
+                
+                <button class="action-btn" id="ic-buy-btn" onclick="buyWithIC()">💳 はやかけんで支払う</button>
+            </div>
+
+            <!-- 購入完了画面 -->
+            <div id="complete-screen" class="screen-content hidden">
+                <div class="celebration">
+                    🎉 お疲れさまでした！ 🎉
+                </div>
+                
+                <div class="ticket-output" id="ticket-info">
+                    <!-- チケット情報がここに表示されます -->
+                </div>
+                
+                <div class="change-display hidden" id="change-info">
+                    <!-- おつり情報がここに表示されます -->
+                </div>
+                
+                <button class="action-btn" onclick="restart()">🔄 もう一度やってみる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 駅データ（古賀駅から各駅への運賃）
+        const stations = [
+            { name: "博多", price: 240 },
+            { name: "吉塚", price: 210 },
+            { name: "香椎", price: 200 },
+            { name: "福間", price: 200 },
+            { name: "赤間", price: 420 },
+            { name: "海老津", price: 500 },
+            { name: "遠賀川", price: 580 },
+            { name: "折尾", price: 760 },
+            { name: "黒崎", price: 950 },
+            { name: "小倉", price: 1150 },
+            { name: "門司", price: 1250 },
+            { name: "門司港", price: 1300 }
+        ];
+
+        // ゲーム状態
+        let gameState = {
+            paymentMethod: null,
+            selectedStation: null,
+            insertedAmount: 0,
+            icBalance: 150,
+            chargeAmount: 0,
+            chargeInserted: 0
+        };
+
+        // 駅選択画面の初期化
+        function generateStations() {
+            const container = document.getElementById('stations-container');
+            // ランダムに6駅を選択
+            const shuffled = [...stations].sort(() => 0.5 - Math.random());
+            const selectedStations = shuffled.slice(0, 6);
+            
+            container.innerHTML = '';
+            selectedStations.forEach(station => {
+                const button = document.createElement('button');
+                button.className = 'station-btn';
+                button.innerHTML = `🚉 ${station.name}駅<br><strong>${station.price}円</strong>`;
+                button.onclick = () => selectStation(station);
+                container.appendChild(button);
+            });
+        }
+
+        // 支払い方法選択
+        function selectPayment(method) {
+            gameState.paymentMethod = method;
+            generateStations();
+            showScreen('station');
+        }
+
+        // 駅選択
+        function selectStation(station) {
+            gameState.selectedStation = station;
+            
+            if (gameState.paymentMethod === 'cash') {
+                initCashPayment();
+                showScreen('cash');
+            } else {
+                initICPayment();
+                showScreen('ic');
+            }
+        }
+
+        // 現金支払い初期化
+        function initCashPayment() {
+            gameState.insertedAmount = 0;
+            updateCashDisplay();
+            document.getElementById('buy-ticket-btn').classList.add('hidden');
+        }
+
+        // 現金投入
+        function insertMoney(amount) {
+            gameState.insertedAmount += amount;
+            updateCashDisplay();
+            
+            // 効果音（視覚効果）
+            const button = event.target;
+            button.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 150);
+            
+            // 十分な金額が入ったら購入ボタンを表示
+            if (gameState.insertedAmount >= gameState.selectedStation.price) {
+                document.getElementById('buy-ticket-btn').classList.remove('hidden');
+            }
+        }
+
+        // 現金表示更新
+        function updateCashDisplay() {
+            document.getElementById('required-amount').textContent = gameState.selectedStation.price;
+            document.getElementById('inserted-amount').textContent = gameState.insertedAmount;
+            const remaining = Math.max(0, gameState.selectedStation.price - gameState.insertedAmount);
+            document.getElementById('remaining-amount').textContent = remaining;
+        }
+
+        // ICカード支払い初期化
+        function initICPayment() {
+            document.getElementById('ic-balance').textContent = gameState.icBalance;
+            
+            if (gameState.icBalance < gameState.selectedStation.price) {
+                document.getElementById('ic-insufficient').classList.remove('hidden');
+                document.getElementById('ic-buy-btn').classList.add('hidden');
+            } else {
+                document.getElementById('ic-insufficient').classList.add('hidden');
+                document.getElementById('ic-buy-btn').classList.remove('hidden');
+            }
+        }
+
+        // ICカードチャージ金額選択
+        function chargeIC(amount) {
+            gameState.chargeAmount = amount;
+            gameState.chargeInserted = 0;
+            updateChargeDisplay();
+        }
+
+        // チャージ用お金投入
+        function insertChareMoney(amount) {
+            gameState.chargeInserted += amount;
+            updateChargeDisplay();
+            
+            if (gameState.chargeInserted >= gameState.chargeAmount) {
+                document.getElementById('charge-btn').classList.remove('hidden');
+            }
+        }
+
+        // チャージ表示更新
+        function updateChargeDisplay() {
+            document.getElementById('charge-required').textContent = gameState.chargeAmount;
+            document.getElementById('charge-inserted').textContent = gameState.chargeInserted;
+        }
+
+        // チャージ実行
+        function executeCharge() {
+            gameState.icBalance += gameState.chargeAmount;
+            document.getElementById('ic-balance').textContent = gameState.icBalance;
+            
+            // チャージ完了後、購入ボタンを表示
+            document.getElementById('ic-insufficient').classList.add('hidden');
+            document.getElementById('ic-buy-btn').classList.remove('hidden');
+            
+            alert(`💳 ${gameState.chargeAmount}円チャージしました！\nおつり: ${gameState.chargeInserted - gameState.chargeAmount}円`);
+        }
+
+        // 現金で乗車券購入
+        function buyTicket() {
+            const change = gameState.insertedAmount - gameState.selectedStation.price;
+            
+            document.getElementById('ticket-info').innerHTML = `
+                🎫 <strong>乗車券</strong><br>
+                古賀駅 → ${gameState.selectedStation.name}駅<br>
+                運賃: ${gameState.selectedStation.price}円
+            `;
+            
+            if (change > 0) {
+                document.getElementById('change-info').innerHTML = `
+                    💰 おつり: ${change}円
+                `;
+                document.getElementById('change-info').classList.remove('hidden');
+            }
+            
+            showScreen('complete');
+        }
+
+        // ICカードで購入
+        function buyWithIC() {
+            gameState.icBalance -= gameState.selectedStation.price;
+            
+            document.getElementById('ticket-info').innerHTML = `
+                💳 <strong>はやかけん利用</strong><br>
+                古賀駅 → ${gameState.selectedStation.name}駅<br>
+                運賃: ${gameState.selectedStation.price}円<br>
+                残高: ${gameState.icBalance}円
+            `;
+            
+            showScreen('complete');
+        }
+
+        // 画面切り替え
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen-content').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            document.getElementById(screenName + '-screen').classList.remove('hidden');
+        }
+
+        // 戻るボタン
+        function goBack(screenName) {
+            showScreen(screenName);
+        }
+
+        // リスタート
+        function restart() {
+            gameState = {
+                paymentMethod: null,
+                selectedStation: null,
+                insertedAmount: 0,
+                icBalance: 150,
+                chargeAmount: 0,
+                chargeInserted: 0
+            };
+            showScreen('payment');
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            showScreen('payment');
+        });
+    </script>
+</body>
+</html>
